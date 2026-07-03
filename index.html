@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Carnet Dickson</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E1626" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+  :root{
+    --ink:#0E1626; --ink-soft:#16213A; --grid:rgba(255,255,255,.045);
+    --paper:#F5F2E8; --amber:#E8A33D; --mint:#5FAD8D; --coral:#E2604F; --muted:#8B95AA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; color:var(--paper);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-color:var(--ink);
+    background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;}
+  header{padding:24px 16px 10px; max-width:480px; margin:0 auto;}
+  header h1{font-size:20px; letter-spacing:.03em; margin:0;}
+  header h1 span{color:var(--amber);}
+  header p{margin:4px 0 0; font-size:11px; color:var(--muted);}
+  main{max-width:480px; margin:0 auto; padding:16px 16px 110px;}
+  .label{font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:0 0 8px;}
+  .card{background:var(--ink-soft); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:16px; margin-bottom:12px;}
+  .row{display:flex; justify-content:space-between; align-items:baseline;}
+  .big{font-size:44px; line-height:1;}
+  .gauge{position:relative; margin-top:12px; height:8px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.08);}
+  .gauge .fill{position:absolute; inset:0 auto 0 0; border-radius:999px;}
+  .gauge .target{position:absolute; top:0; bottom:0; width:2px; background:var(--paper); opacity:.6;}
+  .bar{height:6px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.08); margin-top:6px;}
+  .bar .fill{height:100%; border-radius:999px;}
+  input, textarea{
+    width:100%; background:var(--ink); color:var(--paper); border:1px solid rgba(255,255,255,.1);
+    border-radius:8px; padding:9px 12px; font-size:14px; outline:none; font-family:inherit;
+  }
+  input[type=date]{color-scheme:dark;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  .btn-amber{background:var(--amber); color:var(--ink); border-radius:8px; padding:9px 16px; font-weight:600; font-size:14px;}
+  .btn-icon{background:var(--amber); border-radius:8px; padding:9px 12px;}
+  .link-btn{background:none; color:var(--amber); font-size:13px; font-weight:600; display:flex; align-items:center; gap:4px;}
+  .chip{font-family:monospace; font-size:12px; background:rgba(255,255,255,.06); color:var(--paper); border-radius:6px; padding:4px 8px;}
+  .idea{display:flex; gap:10px; align-items:flex-start; padding:10px; border-radius:10px; background:var(--ink-soft); margin-bottom:8px;}
+  .checkbox{width:20px; height:20px; border-radius:999px; border:1.5px solid var(--muted); flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .checkbox.done{background:var(--mint); border-color:var(--mint);}
+  .subject-card{background:var(--ink-soft); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:14px; margin-bottom:10px;}
+  nav{position:fixed; bottom:0; left:0; right:0; background:var(--ink-soft); border-top:1px solid rgba(255,255,255,.08);}
+  nav .wrap{max-width:480px; margin:0 auto; display:flex;}
+  nav button{flex:1; background:none; display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 0; color:var(--muted);}
+  nav button.active{color:var(--amber);}
+  nav svg{width:19px; height:19px;}
+  nav span{font-size:10px; font-weight:500; letter-spacing:.02em;}
+  .muted{color:var(--muted); font-size:14px;}
+  .flex-gap{display:flex; gap:8px;}
+  .mt3{margin-top:12px;} .mb2{margin-bottom:8px;}
+  .empty{color:var(--muted); font-size:14px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>CARNET <span>// DICKSON</span></h1>
+  <p class="mono" id="dateLine"></p>
+</header>
+<main id="app"></main>
+<nav>
+  <div class="wrap">
+    <button data-tab="dash" onclick="setTab('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span>Tableau</span>
+    </button>
+    <button data-tab="matieres" onclick="setTab('matieres')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Matières</span>
+    </button>
+    <button data-tab="notes" onclick="setTab('notes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M15 2A7 7 0 0 0 8 9c0 2.4 1.2 3.9 2.3 5 .5.5.7 1.2.7 2h2c0-.8.2-1.5.7-2 1.1-1.1 2.3-2.6 2.3-5a7 7 0 0 0-1-4"/></svg>
+      <span>Notes</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+// ---------- storage ----------
+function load(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){ if(!iso) return ""; const d = new Date(iso+"T00:00:00"); return d.toLocaleDateString("fr-FR",{day:"2-digit", month:"short"}); }
+
+let subjects = load("subjects", []);
+let ideas = load("ideas", []);
+let tab = "dash";
+
+document.getElementById("dateLine").textContent =
+  new Date().toLocaleDateString("fr-FR",{weekday:"long", day:"numeric", month:"long"});
+
+function setTab(t){ tab = t; render(); }
+
+function computeStats(){
+  let weightedSum=0, weightSum=0, targetWeightedSum=0, targetWeightSum=0;
+  const perSubject = subjects.map(s=>{
+    const avg = s.grades.length ? s.grades.reduce((a,g)=>a+g.value,0)/s.grades.length : null;
+    if(avg!==null){ weightedSum += avg*s.coefficient; weightSum += s.coefficient; }
+    targetWeightedSum += s.target*s.coefficient; targetWeightSum += s.coefficient;
+    const gap = avg!==null ? Math.max(0, s.target-avg) : null;
+    return {...s, avg, gap};
+  });
+  const globalAvg = weightSum ? weightedSum/weightSum : null;
+  const globalTarget = targetWeightSum ? targetWeightedSum/targetWeightSum : null;
+  const totalGapPoints = perSubject.reduce((a,s)=>a+(s.gap? s.gap*s.coefficient:0),0);
+  return {perSubject, globalAvg, globalTarget, totalGapPoints};
+}
+
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  const app = document.getElementById('app');
+  if(tab==='dash') app.innerHTML = renderDash();
+  else if(tab==='matieres') app.innerHTML = renderMatieres();
+  else app.innerHTML = renderNotes();
+  attachHandlers();
+}
+
+// ---------- DASHBOARD ----------
+function renderDash(){
+  const {perSubject, globalAvg, globalTarget, totalGapPoints} = computeStats();
+  const hasData = globalAvg!==null;
+  let feedback = "Ajoute des notes dans tes matières pour voir ton évolution ici.";
+  let color = "var(--muted)";
+  if(hasData && globalTarget!==null){
+    const diff = globalTarget - globalAvg;
+    if(diff<=0){ feedback = "Tu es au-dessus de tes objectifs. Continue comme ça."; color="var(--mint)"; }
+    else if(diff<1){ feedback = "Tu es tout près de tes objectifs, un petit effort encore."; color="var(--amber)"; }
+    else { feedback = `Il te manque ${diff.toFixed(2)} pt en moyenne pondérée pour atteindre tes objectifs.`; color="var(--coral)"; }
+  }
+  const pct = hasData ? Math.min(100,(globalAvg/20)*100) : 0;
+  const targetPct = globalTarget!==null ? Math.min(100,(globalTarget/20)*100) : 0;
+
+  const upcoming = ideas.filter(i=>!i.done).sort((a,b)=>(a.reminderDate||"9999").localeCompare(b.reminderDate||"9999")).slice(0,3);
+
+  return `
+    <div class="card">
+      <p class="label">Moyenne générale pondérée</p>
+      <div class="row" style="align-items:flex-end; gap:8px;">
+        <span class="big mono">${hasData? globalAvg.toFixed(2):"—"}</span>
+        ${globalTarget!==null? `<span class="mono muted" style="font-size:13px;">/ objectif ${globalTarget.toFixed(2)}</span>`:""}
+      </div>
+      <div class="gauge">
+        <div class="fill" style="width:${pct}%; background:${hasData && globalAvg>=globalTarget?'var(--mint)':'var(--amber)'};"></div>
+        <div class="target" style="left:${targetPct}%;"></div>
+      </div>
+      <p class="mt3" style="color:${color}; font-size:14px;">${feedback}</p>
+    </div>
+    ${totalGapPoints>0? `
+    <div class="card" style="background:rgba(232,163,61,0.08); border-color:rgba(232,163,61,0.25); display:flex; align-items:center; gap:10px;">
+      <span class="mono" style="color:var(--amber); font-size:14px;">${totalGapPoints.toFixed(1)} pts</span>
+      <span style="font-size:14px;">à combler au total (pondéré par coefficient)</span>
+    </div>`:""}
+    ${perSubject.length>0? `
+    <p class="label mt3">Par matière</p>
+    ${perSubject.map(s=>{
+      const p = s.avg!==null? Math.min(100,(s.avg/20)*100):0;
+      const ok = s.avg!==null && s.avg>=s.target;
+      return `<div class="card" style="margin-bottom:8px;">
+        <div class="row mb2"><span style="font-size:14px;">${escapeHtml(s.name)}</span><span class="mono" style="font-size:12px; color:var(--muted);">coef ${s.coefficient}</span></div>
+        <div class="bar"><div class="fill" style="width:${p}%; background:${s.avg===null?'var(--muted)':ok?'var(--mint)':'var(--coral)'};"></div></div>
+        <div class="row mt3" style="margin-top:6px;">
+          <span class="mono" style="font-size:11px; color:var(--muted);">${s.avg!==null? s.avg.toFixed(2):"—"} / obj. ${s.target}</span>
+          ${s.gap>0? `<span class="mono" style="font-size:11px; color:var(--coral);">−${s.gap.toFixed(2)}</span>`:""}
+        </div>
+      </div>`;
+    }).join("")}` : ""}
+    <p class="label mt3">Prochains rappels</p>
+    ${upcoming.length===0? `<p class="empty">Aucune idée en attente.</p>` :
+      upcoming.map(i=>`<div class="card" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:14px;">${escapeHtml(i.text)}</span>
+        ${i.reminderDate? `<span class="mono" style="font-size:11px; color:var(--amber);">${fmtDate(i.reminderDate)}</span>`:""}
+      </div>`).join("")}
+  `;
+}
+
+// ---------- MATIÈRES ----------
+function renderMatieres(){
+  const {perSubject} = computeStats();
+  return `
+    <div class="row mb2">
+      <p class="label" style="margin:0;">Programme de la semaine</p>
+      <button class="link-btn" onclick="toggleForm()">+ Matière</button>
+    </div>
+    <div id="subjectForm" style="display:none;" class="card">
+      <input id="sName" placeholder="Nom de la matière" class="mb2" />
+      <div class="flex-gap mb2">
+        <input id="sCoef" placeholder="Coefficient" type="number" />
+        <input id="sTarget" placeholder="Moyenne visée /20" type="number" />
+      </div>
+      <button class="btn-amber" style="width:100%;" onclick="addSubject()">Ajouter la matière</button>
+    </div>
+    ${subjects.length===0? `<p class="empty">Aucune matière enregistrée. Ajoute ton programme de la semaine.</p>`:""}
+    ${perSubject.map(s=>{
+      const ok = s.avg!==null && s.avg>=s.target;
+      return `<div class="subject-card">
+        <div class="row" style="align-items:flex-start;">
+          <div>
+            <div style="font-size:15px; font-weight:600;">${escapeHtml(s.name)}</div>
+            <div class="mono" style="font-size:11px; color:var(--muted); margin-top:2px;">coef ${s.coefficient} · objectif ${s.target}</div>
+          </div>
+          <button onclick="removeSubject('${s.id}')" style="background:none; color:var(--muted);">✕</button>
+        </div>
+        <div class="flex-gap mt3">
+          <input id="grade-${s.id}" type="number" step="0.25" placeholder="Nouvelle note /20" />
+          <button class="btn-icon" onclick="addGrade('${s.id}')">+</button>
+        </div>
+        ${s.grades.length>0? `<div class="flex-gap mt3" style="flex-wrap:wrap;">
+          ${s.grades.map(g=>`<button class="chip" onclick="removeGrade('${s.id}','${g.id}')">${g.value}</button>`).join("")}
+        </div>`:""}
+      </div>`;
+    }).join("")}
+  `;
+}
+
+function toggleForm(){
+  const f = document.getElementById('subjectForm');
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+}
+function addSubject(){
+  const name = document.getElementById('sName').value.trim();
+  const coef = Number(document.getElementById('sCoef').value);
+  const target = Number(document.getElementById('sTarget').value);
+  if(!name || !coef || !target) return;
+  subjects.push({id:uid(), name, coefficient:coef, target, grades:[]});
+  save('subjects', subjects);
+  render();
+}
+function removeSubject(id){ subjects = subjects.filter(s=>s.id!==id); save('subjects', subjects); render(); }
+function addGrade(id){
+  const el = document.getElementById('grade-'+id);
+  const v = Number(el.value);
+  if(isNaN(v) || el.value==="") return;
+  subjects = subjects.map(s=> s.id===id ? {...s, grades:[...s.grades, {id:uid(), value:v, date:todayISO()}]} : s);
+  save('subjects', subjects);
+  render();
+}
+function removeGrade(sid, gid){
+  subjects = subjects.map(s=> s.id===sid ? {...s, grades:s.grades.filter(g=>g.id!==gid)} : s);
+  save('subjects', subjects);
+  render();
+}
+
+// ---------- NOTES ----------
+function renderNotes(){
+  const sorted = [...ideas].sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return (a.reminderDate||"9999").localeCompare(b.reminderDate||"9999");
+  });
+  return `
+    <div class="card">
+      <textarea id="ideaText" rows="2" placeholder="Écris ton idée ou ta note..." class="mb2"></textarea>
+      <div class="flex-gap">
+        <input id="ideaDate" type="date" style="flex:1;" />
+        <button class="btn-amber" onclick="addIdea()">Ajouter</button>
+      </div>
+    </div>
+    ${sorted.length===0? `<p class="empty">Ton carnet de notes est vide.</p>`:""}
+    ${sorted.map(i=>`
+      <div class="idea" style="opacity:${i.done?0.5:1};">
+        <div class="checkbox ${i.done?'done':''}" onclick="toggleIdea('${i.id}')">${i.done? '✓':''}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:14px; ${i.done?'text-decoration:line-through;':''}">${escapeHtml(i.text)}</div>
+          ${i.reminderDate? `<div class="mono" style="font-size:11px; color:var(--amber); margin-top:4px;">Rappel · ${fmtDate(i.reminderDate)}</div>`:""}
+        </div>
+        <button onclick="removeIdea('${i.id}')" style="background:none; color:var(--muted);">✕</button>
+      </div>
+    `).join("")}
+  `;
+}
+function addIdea(){
+  const text = document.getElementById('ideaText').value.trim();
+  const date = document.getElementById('ideaDate').value;
+  if(!text) return;
+  ideas.unshift({id:uid(), text, reminderDate:date||null, done:false, createdAt:todayISO()});
+  save('ideas', ideas);
+  render();
+}
+function toggleIdea(id){ ideas = ideas.map(i=> i.id===id? {...i, done:!i.done} : i); save('ideas', ideas); render(); }
+function removeIdea(id){ ideas = ideas.filter(i=>i.id!==id); save('ideas', ideas); render(); }
+
+function escapeHtml(str){
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+function attachHandlers(){}
+
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
